@@ -1,0 +1,18 @@
+# Model training and evaluation
+
+## Available models
+The API compares four candidates: Naive baseline, Drift, Holt damped trend, and Holt-Winters additive seasonality. It uses expanding-window rolling-origin validation, forecasting 12 months ahead for each validation window by default. Metrics are mean MAE, RMSE, and MAPE; the selected candidate minimizes mean MAE. This is a prototype selection rule and should be approved against a business-defined acceptance threshold.
+
+## Run evaluation
+- Dashboard: click **Run model evaluation**.
+- API: `POST /train-evaluate?windows=4&horizon=12`.
+- The API writes `backend/data/active_model.json`, containing the selected model, validation setup, dataset fingerprint context (observation count and last date), and candidate metrics.
+- `GET /forecast?horizon=12` then uses the selected model. If fitting fails, it safely falls back to a naive forecast.
+
+The evaluation needs enough monthly history to preserve an initial training period plus the requested validation windows. If the current dataset is stale, refresh it first. Re-evaluate after each verified data refresh; do not assume retraining automatically improves accuracy.
+
+## Guardrails
+- Candidate selection is based only on past-to-future chronological splits, never random splits.
+- MAPE can be misleading when actual values are near zero; the current validator requires positive prices and reports MAE/RMSE alongside MAPE.
+- No prediction intervals, independent holdout approval, authentication, or multi-user model registry are implemented yet.
+- Before production, define acceptance thresholds, add a final untouched holdout, version model/data artifacts, and require manual approval for model promotion.

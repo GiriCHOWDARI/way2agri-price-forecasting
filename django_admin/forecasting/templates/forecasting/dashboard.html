@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Way2Agri Forecast Admin</title>
+<style>body{font-family:Arial,sans-serif;max-width:900px;margin:40px auto;padding:0 16px;color:#172033}button,select{padding:10px}pre{background:#f1f5f9;padding:16px;overflow:auto;border-radius:8px}.note{background:#fffbeb;padding:12px;border:1px solid #fcd34d}</style></head>
+<body><h1>Way2Agribusiness Forecast Admin</h1>
+<p>Django workflow shell calling the separate FastAPI prediction service.</p>
+<p><label>Horizon <select id="horizon"><option>6</option><option selected>12</option><option>18</option><option>24</option></select></label>
+<button onclick="loadForecast()">Get forecast</button></p>
+<p id="status"></p><pre id="output">Click “Get forecast”.</pre>
+<div class="note">Prototype only. Check data freshness and review the forecast before making business decisions.</div>
+<script>
+async function loadForecast(){
+ const out=document.getElementById("output"), status=document.getElementById("status");
+ status.textContent="Loading…";
+ try{
+  const r=await fetch("/api/forecast-proxy/?horizon="+document.getElementById("horizon").value);
+  const data=await r.json(); if(!r.ok) throw new Error(data.detail||r.statusText);
+  out.textContent=JSON.stringify(data,null,2); status.textContent=data.is_stale?"Warning: dataset is stale.":"Forecast loaded.";
+ }catch(e){status.textContent="Error: "+e.message;}
+}
+</script></body></html>

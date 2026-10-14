@@ -1,0 +1,38 @@
+{
+  "selected_model": "Naive baseline",
+  "selection_metric": "mean_mae",
+  "validation_horizon_months": 12,
+  "windows_evaluated": 4,
+  "observation_count": 249,
+  "last_observation_date": "2025-09-01",
+  "results": [
+    {
+      "model": "Naive baseline",
+      "windows_evaluated": 4,
+      "mean_mae": 2232.54,
+      "mean_rmse": 2546.8,
+      "mean_mape_percent": 17.67
+    },
+    {
+      "model": "Holt damped trend",
+      "windows_evaluated": 4,
+      "mean_mae": 2234.2,
+      "mean_rmse": 2545.83,
+      "mean_mape_percent": 17.69
+    },
+    {
+      "model": "Drift",
+      "windows_evaluated": 4,
+      "mean_mae": 2243.58,
+      "mean_rmse": 2553.75,
+      "mean_mape_percent": 17.9
+    },
+    {
+      "model": "Holt-Winters additive",
+      "windows_evaluated": 4,
+      "mean_mae": 2286.27,
+      "mean_rmse": 2629.51,
+      "mean_mape_percent": 18.42
+    }
+  ]
+}
