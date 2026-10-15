@@ -56,3 +56,17 @@ def test_forecast_dates_follow_last_observation_and_staleness_is_reported():
     assert body["last_observation_date"] == "2025-09-01"
     # The bundled sample data is intentionally old; the API must disclose this.
     assert body["is_stale"] is True
+
+
+def test_forecast_includes_side_by_side_model_comparison():
+    response = client.get("/forecast?horizon=3")
+    assert response.status_code == 200
+    body = response.json()
+    comparison = {item["model"]: item for item in body["forecast_comparison"]}
+    assert {"Naive baseline", "Drift", "Holt damped trend", "Holt-Winters additive"} <= set(comparison)
+    naive_values = [point["predicted_price"] for point in comparison["Naive baseline"]["forecast"]]
+    drift_values = [point["predicted_price"] for point in comparison["Drift"]["forecast"]]
+    assert len(naive_values) == 3
+    assert len(drift_values) == 3
+    assert len(set(naive_values)) == 1
+    assert len(set(drift_values)) > 1

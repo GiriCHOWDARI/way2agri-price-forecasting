@@ -77,16 +77,43 @@ def build_forecast(series: pd.Series, horizon: int = 12) -> dict:
     if not 1 <= horizon <= 36:
         raise ValueError("horizon must be between 1 and 36 months.")
     model_name = _active_model()
+    candidate_names = ["Naive baseline", "Drift", "Holt damped trend", "Holt-Winters additive"]
+    comparison_predictions = {}
+    comparison_errors = {}
+    for candidate in candidate_names:
+        try:
+            candidate_values = _forecast_candidate(series, horizon, candidate)
+            comparison_predictions[candidate] = np.asarray(candidate_values, dtype=float)
+        except Exception as exc:
+            # Keep the rest of the dashboard usable and explicitly disclose a failed candidate.
+            comparison_errors[candidate] = str(exc)[:240]
+
     try:
-        predictions = _forecast_candidate(series, horizon, model_name)
+        if model_name in comparison_predictions:
+            predictions = comparison_predictions[model_name]
+        else:
+            raise ValueError("Selected model did not produce a forecast.")
     except Exception:
         # Fail safely to a transparent baseline if a fitted model cannot be produced.
         model_name = "Naive baseline (safe fallback)"
         predictions = np.repeat(float(series.iloc[-1]), horizon)
+
     last_date = pd.Timestamp(series.index.max())
     last_value = float(series.iloc[-1])
     dates = pd.date_range(last_date + pd.offsets.MonthBegin(1), periods=horizon, freq="MS")
     age_days = (pd.Timestamp.now(tz=None).normalize() - last_date.normalize()).days
+    comparison = []
+    for candidate in candidate_names:
+        if candidate in comparison_predictions:
+            comparison.append({
+                "model": candidate,
+                "forecast": [
+                    {"date": d.strftime("%Y-%m-%d"), "predicted_price": round(float(max(0, p)), 2)}
+                    for d, p in zip(dates, comparison_predictions[candidate])
+                ],
+            })
+        else:
+            comparison.append({"model": candidate, "error": comparison_errors.get(candidate, "Forecast unavailable."), "forecast": []})
     return {
         "model": model_name,
         "horizon_months": horizon,
@@ -95,9 +122,11 @@ def build_forecast(series: pd.Series, horizon: int = 12) -> dict:
         "data_age_days": max(0, int(age_days)),
         "is_stale": age_days > 62,
         "forecast": [{"date": d.strftime("%Y-%m-%d"), "predicted_price": round(float(max(0, p)), 2)} for d, p in zip(dates, predictions)],
+        "forecast_comparison": comparison,
         "limitations": [
             "Model selection uses historical rolling-origin validation; recent structural changes can invalidate it.",
             "Forecast uncertainty intervals and commodity/market metadata are not yet implemented.",
+            "Comparison forecasts are alternative model outputs, not verified current market prices.",
             "Forecasts are decision support only; do not automate purchasing from this output.",
         ],
     }

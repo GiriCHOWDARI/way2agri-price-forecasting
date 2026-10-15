@@ -10,6 +10,11 @@ class ForecastPoint(BaseModel):
     date: str
     predicted_price: float
 
+class ModelForecastComparison(BaseModel):
+    model: str
+    forecast: list[ForecastPoint] = []
+    error: str | None = None
+
 class ForecastResponse(BaseModel):
     model: str
     horizon_months: int
@@ -18,6 +23,7 @@ class ForecastResponse(BaseModel):
     data_age_days: int
     is_stale: bool
     forecast: list[ForecastPoint]
+    forecast_comparison: list[ModelForecastComparison] = []
     limitations: list[str]
 
 class HistoryPoint(BaseModel):

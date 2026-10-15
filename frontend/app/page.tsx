@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 
 type Point = { date: string; predicted_price: number };
+type ModelForecastComparison = { model: string; forecast: Point[]; error?: string };
 type Forecast = {
   model: string; horizon_months: number; last_observation_date: string;
   last_observed_price: number; data_age_days: number; is_stale: boolean;
-  forecast: Point[]; limitations: string[];
+  forecast: Point[]; forecast_comparison: ModelForecastComparison[]; limitations: string[];
 };
 type History = { date: string; avg_monthly_price: number };
 type Evaluation = { selected_model: string; selection_metric: string; windows_evaluated: number; results: { model: string; mean_mae: number; mean_rmse: number; mean_mape_percent: number }[]; warning: string };
@@ -131,6 +132,36 @@ export default function Home() {
 
       {forecast?.is_stale && <div style={{ ...panel, background: "#fffbeb", borderColor: "#fcd34d", marginBottom: 18, color: "#92400e" }}><strong>Data needs refreshing.</strong> The supplied dataset ends on {forecast.last_observation_date}. Forecast values are a baseline illustration, not current market guidance.</div>}
 
+      {forecast?.forecast_comparison && <section style={{ ...panel, marginTop: 18, marginBottom: 18 }}>
+        <div style={{ marginBottom: 14 }}>
+          <h2 style={{ margin: "0 0 5px", fontSize: 20, color: "#0f172a" }}>Compare forecast values across all models</h2>
+          <p style={{ margin: 0, color: "#64748b", fontSize: 13, lineHeight: 1.6 }}>
+            This table shows each model's own prediction for the same month. The Naive baseline repeats the last observed price by design; Drift, Holt damped trend, and Holt-Winters can produce different values. Values are model estimates, not live market prices.
+          </p>
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+            <thead><tr>
+              <th style={th}>Forecast month</th>
+              {forecast.forecast_comparison.map(m => <th key={m.model} style={{ ...th, textAlign: "right" }}>{m.model}</th>)}
+            </tr></thead>
+            <tbody>
+              {(forecast.forecast_comparison.find(m => m.forecast.length > 0)?.forecast ?? []).map((point, i) => (
+                <tr key={point.date}>
+                  <td style={td}>{new Date(point.date + "T00:00:00").toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</td>
+                  {forecast.forecast_comparison.map(m => <td key={m.model} style={{ ...td, textAlign: "right", fontWeight: m.model === forecast.model ? 800 : 500 }}>
+                    {m.forecast[i] ? money(m.forecast[i].predicted_price) : (m.error ? "Unavailable" : "—")}
+                  </td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {forecast.forecast_comparison.some(m => m.error) && <p style={{ color: "#b45309", fontSize: 12, marginBottom: 0 }}>
+          One or more models could not be fitted for this dataset. Check the API response for each model's error.
+        </p>}
+      </section>}
+
       <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(min(100%,430px),1fr))", gap: 18, alignItems: "start" }}>
         <div style={panel}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
@@ -141,7 +172,7 @@ export default function Home() {
             <thead><tr><th style={th}>Forecast month</th><th style={{ ...th, textAlign: "right" }}>Predicted price</th></tr></thead>
             <tbody>{(forecast?.forecast ?? []).map(p => <tr key={p.date}><td style={td}>{new Date(p.date + "T00:00:00").toLocaleDateString("en-IN", { month: "short", year: "numeric" })}</td><td style={{ ...td, textAlign: "right", fontWeight: 700 }}>{money(p.predicted_price)}</td></tr>)}</tbody>
           </table></div>}
-          <p style={{ color: "#94a3b8", fontSize: 12, margin: "14px 0 0" }}>The selected model is fitted against the active dataset. Review evaluation metrics and data freshness before using forecasts.</p>
+          <p style={{ color: "#94a3b8", fontSize: 12, margin: "14px 0 0" }}>This panel shows the selected model. Use the comparison table below to inspect values from every candidate model side by side.</p>
         </div>
 
         <div style={panel}>

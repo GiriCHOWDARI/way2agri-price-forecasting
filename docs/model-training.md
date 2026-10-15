@@ -16,3 +16,18 @@ The evaluation needs enough monthly history to preserve an initial training peri
 - MAPE can be misleading when actual values are near zero; the current validator requires positive prices and reports MAE/RMSE alongside MAPE.
 - No prediction intervals, independent holdout approval, authentication, or multi-user model registry are implemented yet.
 - Before production, define acceptance thresholds, add a final untouched holdout, version model/data artifacts, and require manual approval for model promotion.
+
+
+## Side-by-side forecast comparison
+
+`GET /forecast?horizon=12` now returns both the selected model's `forecast` and a
+`forecast_comparison` array for Naive baseline, Drift, Holt damped trend, and
+Holt-Winters additive. The dashboard displays these predictions side by side for
+each forecast month, so users can see why the Naive baseline is flat while trend
+and seasonal models may vary.
+
+The model selected by rolling-origin validation remains the primary forecast; the
+comparison table does not automatically force a model with changing values to win.
+The sample dataset ends in September 2025, so its forecast dates are historical
+relative to October 2026. Upload a current, verified monthly dataset and rerun
+model evaluation before using forecasts for decisions.
