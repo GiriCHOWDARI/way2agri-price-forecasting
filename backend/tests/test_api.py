@@ -45,3 +45,14 @@ def test_dataset_upload_requires_csv_content_type():
         headers={"Content-Type": "application/json"},
     )
     assert response.status_code == 415
+
+
+def test_forecast_dates_follow_last_observation_and_staleness_is_reported():
+    response = client.get("/forecast?horizon=3")
+    assert response.status_code == 200
+    body = response.json()
+    dates = [point["date"] for point in body["forecast"]]
+    assert dates == ["2025-10-01", "2025-11-01", "2025-12-01"]
+    assert body["last_observation_date"] == "2025-09-01"
+    # The bundled sample data is intentionally old; the API must disclose this.
+    assert body["is_stale"] is True

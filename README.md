@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Way2Agribusiness Monthly Price Forecasting — Prototype
 
 A starter project for the assignment: FastAPI forecast API, a small Next.js dashboard,
@@ -88,6 +87,3 @@ CSV must have exactly these required columns:
 
 If multiple commodities or markets are added, add explicit identifiers and filter to one series
 before forecasting. Do not aggregate unrelated series silently.
-=======
-"# EduFocus-YouTube" 
->>>>>>> 1389a8c1553f0cab3917960ef7e91de3c96824d1
