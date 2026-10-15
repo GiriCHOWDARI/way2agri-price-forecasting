@@ -70,3 +70,31 @@ def test_forecast_includes_side_by_side_model_comparison():
     assert len(drift_values) == 3
     assert len(set(naive_values)) == 1
     assert len(set(drift_values)) > 1
+
+
+def test_cors_allows_production_frontend_for_dataset_post():
+    response = client.options(
+        "/dataset",
+        headers={
+            "Origin": "https://way2agri-price-forecasting.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "https://way2agri-price-forecasting.vercel.app"
+    assert "POST" in response.headers.get("access-control-allow-methods", "")
+
+
+def test_cors_allows_vercel_preview_origin():
+    origin = "https://way2agri-price-forecasting-giri-team.vercel.app"
+    response = client.options(
+        "/dataset",
+        headers={
+            "Origin": origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == origin

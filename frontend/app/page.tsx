@@ -12,7 +12,7 @@ type Forecast = {
 type History = { date: string; avg_monthly_price: number };
 type Evaluation = { selected_model: string; selection_metric: string; windows_evaluated: number; results: { model: string; mean_mae: number; mean_rmse: number; mean_mape_percent: number }[]; warning: string };
 
-const API = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+const API = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://way2agri-price-forecasting-1.onrender.com").replace(/\/$/, "");
 const money = (v: number) => new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(v);
 const panel: React.CSSProperties = {
   background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16,

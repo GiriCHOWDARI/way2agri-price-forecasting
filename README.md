@@ -87,3 +87,10 @@ CSV must have exactly these required columns:
 
 If multiple commodities or markets are added, add explicit identifiers and filter to one series
 before forecasting. Do not aggregate unrelated series silently.
+
+## Deployment environment variables
+
+- **Render backend (optional):** `CORS_ORIGINS` may contain additional comma-separated frontend origins. The production Vercel origin and localhost development origins are already allowed. Vercel preview URLs are allowed by a restricted `*.vercel.app` origin pattern.
+- **Vercel frontend:** set `NEXT_PUBLIC_API_BASE_URL` to `https://way2agri-price-forecasting-1.onrender.com` in Project Settings → Environment Variables, then redeploy. The frontend uses this production API URL as its default if the variable is absent.
+
+After deploying the backend, verify `/health` and test CSV upload from the deployed frontend. A successful local test suite cannot guarantee that hosting settings or the deployed environment variables are correct.

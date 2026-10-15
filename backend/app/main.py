@@ -12,15 +12,19 @@ app = FastAPI(
     description="Prototype monthly price forecasting API. Forecasts are decision support only.",
 )
 
-# Restrict this list to the actual deployed frontend origin before production.
-
+# Explicitly allow the production frontend, local development, and optional origins
+# configured in Render via CORS_ORIGINS (comma-separated). Preview deployments on
+# Vercel are supported by the anchored regex without allowing arbitrary domains.
+_default_origins = [
+    "https://way2agri-price-forecasting.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+_extra_origins = [origin.strip().rstrip("/") for origin in os.getenv("CORS_ORIGINS", "").split(",") if origin.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://way2agri-price-forecasting.vercel.app",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=list(dict.fromkeys(_default_origins + _extra_origins)),
+    allow_origin_regex=r"https://[a-zA-Z0-9-]+(?:-[a-zA-Z0-9-]+)*\.vercel\.app",
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
